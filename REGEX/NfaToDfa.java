@@ -86,7 +86,8 @@ public class NfaToDfa {
                         }
                         if(!found)
                         {
-                              NFA_State nnst=new NFA_State(nextId++,result);                              unMarked.push(nnst);
+                              NFA_State nnst=new NFA_State(nextId++,result);
+                              unMarked.push(nnst);
                               dfa.offer(nnst);
                               toProcess.setTransition(input,nnst);
                         }

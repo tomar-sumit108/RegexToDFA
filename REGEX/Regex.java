@@ -10,6 +10,10 @@ public class Regex {
       public Regex(){
             NFA_Table=new ArrayDeque<>();
       }
+//      boolean isValid(String str)
+//      {
+//
+//      }
       public boolean solve(String str)
       {
             StringToNFA converter=new StringToNFA();

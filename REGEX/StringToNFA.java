@@ -19,7 +19,7 @@ public class StringToNFA {
       }
 
       boolean isChar(char a) {
-            return (a!='|'&&a!='*'&&a!='('&&a!=')'&&a!=1);
+            return (a!='|'&&a!='*'&&a!='('&&a!=')'&&a!=1&&a!='+');
       }
       boolean LeftParen(char a) {
             return (a=='(');
@@ -27,9 +27,11 @@ public class StringToNFA {
       boolean RightParen(char b) {
             return (b==')');
       }
+
       String Expand(String str)
       {
             StringBuilder ss=new StringBuilder();
+
             for(int i=0;i<str.length()-1;i++)
             {
                   char a=str.charAt(i);
@@ -37,7 +39,7 @@ public class StringToNFA {
                   ss.append(a);
                   if(isChar(a))
                         inputSet.add(str.charAt(i));
-                  if((isChar(a)||RightParen(a)||a=='*')&&(isChar(b)||LeftParen(b))){
+                  if((isChar(a)||RightParen(a)||a=='*'||a=='+')&&(isChar(b)||LeftParen(b))){
                         char tt=1;
                         ss.append(tt);
                   }
@@ -47,7 +49,6 @@ public class StringToNFA {
             if(isChar(str.charAt(str.length()-1)))
                   inputSet.add(str.charAt(str.length()-1));
 
-            System.out.println();
             System.out.println("the StringBuilder is "+ss);
             return ss.toString();
       }
@@ -62,21 +63,17 @@ public class StringToNFA {
             operandStack.push(temp);
       }
 
-      boolean Concat()
+      void Concat()
       {
-            if(operandStack.size()<2)
-                  return false;
             ArrayDeque<NFA_State> d2=operandStack.pop();
             ArrayDeque<NFA_State> d1=operandStack.pop();
             d1.getLast().setTransition(EPSILON,d2.getFirst());
             d1.addAll(d2);
             operandStack.push(d1);
-            return true;
       }
-      boolean Star()
+      void Star()
       {
-            if(operandStack.empty())
-                  return false;
+
             ArrayDeque<NFA_State> d1=operandStack.pop();
             NFA_State a=new NFA_State(idCount++);
             NFA_State b=new NFA_State(idCount++);
@@ -87,13 +84,11 @@ public class StringToNFA {
             d1.offerLast(b);
             d1.offerFirst(a);
             operandStack.push(d1);
-            return true;
       }
-      boolean Union()
+      void Union()
       {
 
-            if(operandStack.size()<2)
-                  return false;
+
             ArrayDeque<NFA_State> d2=operandStack.pop();
             ArrayDeque<NFA_State> d1=operandStack.pop();
             NFA_State a=new NFA_State(idCount++);
@@ -106,7 +101,18 @@ public class StringToNFA {
             d1.addAll(d2);
             d1.offer(b);
             operandStack.push(d1);
-            return true;
+      }
+      void Plus(){
+
+            ArrayDeque<NFA_State> d1=operandStack.pop();
+            NFA_State a=new NFA_State(idCount++);
+            NFA_State b=new NFA_State(idCount++);
+            a.setTransition(EPSILON,d1.getFirst());
+            d1.getLast().setTransition(EPSILON,b);;
+            d1.getLast().setTransition(EPSILON,d1.getFirst());
+            d1.offerLast(b);
+            d1.offerFirst(a);
+            operandStack.push(d1);
       }
 
       boolean Evaluate()
@@ -125,19 +131,22 @@ public class StringToNFA {
                   case '|':
                         Union();
                         break;
+                  case '+':
+                        Plus();
+                        break;
             }
             return true;
 
       }
       boolean Precedence(char a,char b)
       {
-            if(a == b)
+            if(a == b||(a=='*'&&b=='+')||(a=='+'&&b=='*'))
                   return true;
 
-            if(a == '*')
+            if(a == '*'||a=='+')
                   return false;
 
-            if(b == '*')
+            if(b == '*'||b=='+')
                   return true;
 
             if(a == 1)
